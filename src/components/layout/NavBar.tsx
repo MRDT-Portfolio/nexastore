@@ -1,10 +1,12 @@
-'use client';
+"use client";
 
 import Link from "next/link";
-import { useAppSelector } from "@/hooks/redux";
+import { useAppDispatch, useAppSelector } from "@/hooks/redux";
+import { openCart } from "@/lib/features/cart/cartSlice";
 
 export function Navbar() {
   const cartItems = useAppSelector((state) => state.cart.items);
+  const dispatch = useAppDispatch();
 
   const cartCount = cartItems.reduce((total, item) => total + item.quantity, 0);
   return (
@@ -49,7 +51,6 @@ export function Navbar() {
           </Link>
         </nav>
 
-        {/* Actions */}
         <div className="flex items-center gap-4">
           <button
             type="button"
@@ -59,12 +60,13 @@ export function Navbar() {
             Search
           </button>
 
-          <Link
-            href="/cart"
+          <button
+            type="button"
+            onClick={() => dispatch(openCart())}
             className="text-sm text-neutral-700 transition hover:text-neutral-950"
           >
             Cart ({cartCount})
-          </Link>
+          </button>
 
           {/* Mobile menu button */}
           <button
