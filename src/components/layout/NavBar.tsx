@@ -1,6 +1,12 @@
-import Link from 'next/link';
+'use client';
+
+import Link from "next/link";
+import { useAppSelector } from "@/hooks/redux";
 
 export function Navbar() {
+  const cartItems = useAppSelector((state) => state.cart.items);
+
+  const cartCount = cartItems.reduce((total, item) => total + item.quantity, 0);
   return (
     <header className="border-b border-neutral-200 bg-white">
       <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-6 lg:px-8">
@@ -57,7 +63,7 @@ export function Navbar() {
             href="/cart"
             className="text-sm text-neutral-700 transition hover:text-neutral-950"
           >
-            Cart (0)
+            Cart ({cartCount})
           </Link>
 
           {/* Mobile menu button */}
