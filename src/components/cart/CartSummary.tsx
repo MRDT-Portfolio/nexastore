@@ -2,24 +2,24 @@
 
 import Link from 'next/link';
 
+import {
+  FREE_SHIPPING_THRESHOLD,
+  SHIPPING_COST,
+  calculateShipping,
+} from '@/lib/features/cart/cartCalculations';
+
 interface CartSummaryProps {
   subtotal: number;
 }
 
-const FREE_SHIPPING_THRESHOLD = 100;
-const SHIPPING_COST = 5.99;
-
 export function CartSummary({
   subtotal,
 }: CartSummaryProps) {
-  const isFreeShipping =
-    subtotal >= FREE_SHIPPING_THRESHOLD;
-
-  const shipping = isFreeShipping
-    ? 0
-    : SHIPPING_COST;
+  const shipping = calculateShipping(subtotal);
 
   const total = subtotal + shipping;
+
+  const isFreeShipping = shipping === 0;
 
   const amountUntilFreeShipping = Math.max(
     FREE_SHIPPING_THRESHOLD - subtotal,
@@ -32,7 +32,6 @@ export function CartSummary({
         Order summary
       </h2>
 
-      {/* Free shipping message */}
       {!isFreeShipping && (
         <div className="mt-5 rounded-xl bg-white p-4">
           <p className="text-sm leading-6 text-neutral-600">
@@ -65,7 +64,6 @@ export function CartSummary({
         </div>
       )}
 
-      {/* Totals */}
       <div className="mt-6 space-y-4">
         <div className="flex items-center justify-between text-sm">
           <span className="text-neutral-500">
@@ -102,7 +100,6 @@ export function CartSummary({
         </div>
       </div>
 
-      {/* Checkout */}
       <Link
         href="/checkout"
         className="mt-6 flex h-12 w-full items-center justify-center rounded-xl bg-neutral-950 text-sm font-semibold text-white transition hover:bg-neutral-800"

@@ -1,30 +1,23 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
+import Link from "next/link";
 
-import {
-  useAppSelector,
-} from '@/hooks/redux';
+import { useAppSelector } from "@/hooks/redux";
 
-import { CartItem } from '@/components/cart/CartItem';
-import { CartSummary } from '@/components/cart/CartSummary';
-import { EmptyCart } from '@/components/cart/EmptyCart';
+import { CartItem } from "@/components/cart/CartItem";
+import { CartSummary } from "@/components/cart/CartSummary";
+import { EmptyCart } from "@/components/cart/EmptyCart";
+import { calculateSubtotal } from "@/lib/features/cart/cartCalculations";
 
 export default function CartPage() {
-  const cartItems = useAppSelector(
-    (state) => state.cart.items
-  );
+  const cartItems = useAppSelector((state) => state.cart.items);
 
   const totalItems = cartItems.reduce(
     (total, item) => total + item.quantity,
-    0
+    0,
   );
 
-  const subtotal = cartItems.reduce(
-    (total, item) =>
-      total + item.price * item.quantity,
-    0
-  );
+  const subtotal = calculateSubtotal(cartItems);
 
   if (cartItems.length === 0) {
     return (
@@ -62,8 +55,7 @@ export default function CartPage() {
           </div>
 
           <p className="text-sm text-neutral-500">
-            {totalItems}{' '}
-            {totalItems === 1 ? 'item' : 'items'}
+            {totalItems} {totalItems === 1 ? "item" : "items"}
           </p>
         </div>
 
@@ -73,10 +65,7 @@ export default function CartPage() {
           <div>
             <div className="divide-y divide-neutral-200 border-y border-neutral-200">
               {cartItems.map((item) => (
-                <CartItem
-                  key={item.id}
-                  item={item}
-                />
+                <CartItem key={item.id} item={item} />
               ))}
             </div>
 
