@@ -1,63 +1,21 @@
+'use client';
 import Link from 'next/link';
 import { ProductCard } from '@/components/product/ProductCard';
 
-const products = [
-  {
-    id: 1,
-    name: 'Wireless Headphones',
-    image:
-      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=1200&auto=format&fit=crop',
-    price: 79.99,
-    originalPrice: 99.99,
-    rating: 4.8,
-    reviews: 128,
-    discount: 20,
-  },
-  {
-    id: 2,
-    name: 'Smart Watch Series 7',
-    image:
-      'https://images.unsplash.com/photo-1544117519-31a4b719223d?q=80&w=1200&auto=format&fit=crop',
-    price: 169.99,
-    originalPrice: 199.99,
-    rating: 4.7,
-    reviews: 96,
-    discount: 15,
-  },
-  {
-    id: 3,
-    name: 'Portable Bluetooth Speaker',
-    image:
-      'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?q=80&w=1200&auto=format&fit=crop',
-    price: 49.99,
-    rating: 4.9,
-    reviews: 64,
-  },
-  {
-    id: 4,
-    name: 'Minimal Backpack',
-    image:
-      'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=1200&auto=format&fit=crop',
-    price: 89.99,
-    originalPrice: 99.99,
-    rating: 4.6,
-    reviews: 87,
-    discount: 10,
-  },
-  {
-    id: 5,
-    name: 'Digital Camera 4K',
-    image:
-      'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=1200&auto=format&fit=crop',
-    price: 499.99,
-    rating: 4.8,
-    reviews: 45,
-  },
-];
+import { ProductGridSkeleton } from '../product/ProductGridSkeleton';
+import { useGetProductsQuery } from '@/services/api/baseApi';
 
 export function FeaturedProducts() {
+    const {
+    data,
+    isLoading,
+    isError,
+  } = useGetProductsQuery();
+
+    const products = data?.products.slice(0, 5) ?? [];
+
   return (
-    <section className="bg-white pb-20 pt-4 sm:pb-24">
+   <section className="bg-white pb-20 pt-4 sm:pb-24">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mb-8 flex items-end justify-between">
           <div>
@@ -78,18 +36,38 @@ export function FeaturedProducts() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 lg:grid-cols-5 lg:gap-x-5">
-          {products.map((product) => (
-            <ProductCard key={product.id} {...product} />
-          ))}
-        </div>
+        {isLoading && (
+          <ProductGridSkeleton />
+        )}
 
-        <Link
-          href="/products"
-          className="mt-10 block text-sm font-medium text-neutral-700 sm:hidden"
-        >
-          View all products →
-        </Link>
+        {isError && (
+          <div className="rounded-2xl bg-red-50 p-6 text-sm text-red-600">
+            Unable to load products. Please try again later.
+          </div>
+        )}
+
+        {!isLoading && !isError && (
+          <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 lg:grid-cols-5 lg:gap-x-5">
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                id={product.id}
+                name={product.title}
+                image={product.thumbnail}
+                price={product.price}
+                originalPrice={
+                  product.price /
+                  (1 - product.discountPercentage / 100)
+                }
+                rating={product.rating}
+                reviews={Math.round(product.rating * 20)}
+                discount={Math.round(
+                  product.discountPercentage
+                )}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
