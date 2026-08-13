@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { ProductGallery } from '@/components/product/ProductGallery';
-import { ProductInfo } from '@/components/product/ProductInfo';
-import { products } from '@/lib/products';
+
+import { ProductDetails } from '@/components/product/ProductDetails';
 
 interface ProductPageProps {
   params: Promise<{
@@ -15,18 +14,20 @@ export async function generateMetadata({
 }: ProductPageProps): Promise<Metadata> {
   const { id } = await params;
 
-  const product = products.find(
-    (item) => item.id === Number(id)
+  const response = await fetch(
+    `https://dummyjson.com/products/${id}`
   );
 
-  if (!product) {
+  if (!response.ok) {
     return {
       title: 'Product Not Found | NexaStore',
     };
   }
 
+  const product = await response.json();
+
   return {
-    title: `${product.name} | NexaStore`,
+    title: `${product.title} | NexaStore`,
     description: product.description,
   };
 }
@@ -36,26 +37,11 @@ export default async function ProductPage({
 }: ProductPageProps) {
   const { id } = await params;
 
-  const product = products.find(
-    (item) => item.id === Number(id)
-  );
+  const productId = Number(id);
 
-  if (!product) {
+  if (!Number.isInteger(productId) || productId <= 0) {
     notFound();
   }
 
-  return (
-    <main>
-      <section className="mx-auto max-w-7xl px-6 py-12 lg:px-8 lg:py-20">
-        <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
-          <ProductGallery
-            images={product.images}
-            name={product.name}
-          />
-
-          <ProductInfo product={product} />
-        </div>
-      </section>
-    </main>
-  );
+  return <ProductDetails productId={productId} />;
 }

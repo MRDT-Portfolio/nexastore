@@ -1,24 +1,41 @@
 'use client';
 
 import { useState } from 'react';
+
 import type { Product } from '@/types/product';
+import { useAppDispatch } from '@/hooks/redux';
 import { QuantitySelector } from './QuantitySelector';
+import { addToCart } from '@/lib/features/cart/cartSlice';
 
 interface ProductInfoProps {
   product: Product;
 }
 
-export function ProductInfo({ product }: ProductInfoProps) {
-  const [selectedColor, setSelectedColor] = useState(product.colors[0]);
-  const [selectedSize, setSelectedSize] = useState(product.sizes?.[0]);
+export function ProductInfo({
+  product,
+}: ProductInfoProps) {
+  const dispatch = useAppDispatch();
 
-  const discount = product.originalPrice
-    ? Math.round(
-        ((product.originalPrice - product.price) /
-          product.originalPrice) *
-          100
-      )
-    : null;
+  const [quantity, setQuantity] = useState(1);
+
+  const discount = Math.round(product.discountPercentage);
+
+  const originalPrice =
+    product.price / (1 - product.discountPercentage / 100);
+
+  const reviewCount = product.reviews?.length ?? 0;
+
+  const handleAddToCart = () => {
+    dispatch(
+      addToCart({
+        id: product.id,
+        name: product.title,
+        price: product.price,
+        image: product.thumbnail,
+        quantity,
+      })
+    );
+  };
 
   return (
     <div>
@@ -29,12 +46,22 @@ export function ProductInfo({ product }: ProductInfoProps) {
 
       {/* Title */}
       <h1 className="mt-3 text-3xl font-semibold tracking-tight text-neutral-950 sm:text-4xl">
-        {product.name}
+        {product.title}
       </h1>
+
+      {/* Brand */}
+      {product.brand && (
+        <p className="mt-2 text-sm text-neutral-500">
+          by {product.brand}
+        </p>
+      )}
 
       {/* Rating */}
       <div className="mt-4 flex items-center gap-3">
-        <div className="flex gap-0.5 text-sm text-amber-400">
+        <div
+          className="flex gap-0.5 text-sm text-amber-400"
+          aria-label={`${product.rating} out of 5 stars`}
+        >
           {'★★★★★'.split('').map((star, index) => (
             <span
               key={index}
@@ -50,27 +77,25 @@ export function ProductInfo({ product }: ProductInfoProps) {
         </div>
 
         <span className="text-sm text-neutral-500">
-          {product.rating} · {product.reviews} reviews
+          {product.rating.toFixed(1)} · {reviewCount} reviews
         </span>
       </div>
 
       {/* Price */}
-      <div className="mt-6 flex items-center gap-3">
+      <div className="mt-6 flex flex-wrap items-center gap-3">
         <span className="text-2xl font-semibold text-neutral-950">
           €{product.price.toFixed(2)}
         </span>
 
-        {product.originalPrice && (
+        {product.discountPercentage > 0 && (
           <>
             <span className="text-lg text-neutral-400 line-through">
-              €{product.originalPrice.toFixed(2)}
+              €{originalPrice.toFixed(2)}
             </span>
 
-            {discount && (
-              <span className="rounded-md bg-red-50 px-2 py-1 text-xs font-semibold text-red-600">
-                Save {discount}%
-              </span>
-            )}
+            <span className="rounded-md bg-red-50 px-2 py-1 text-xs font-semibold text-red-600">
+              Save {discount}%
+            </span>
           </>
         )}
       </div>
@@ -82,67 +107,22 @@ export function ProductInfo({ product }: ProductInfoProps) {
 
       <div className="my-8 h-px bg-neutral-200" />
 
-      {/* Color */}
-      <div>
-        <div className="mb-3 flex items-center justify-between">
-          <span className="text-sm font-semibold text-neutral-950">
-            Color
-          </span>
+      {/* Availability */}
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-semibold text-neutral-950">
+          Availability
+        </span>
 
-          <span className="text-sm text-neutral-500">
-            {selectedColor}
-          </span>
-        </div>
-
-        <div className="flex gap-3">
-          {product.colors.map((color) => (
-            <button
-              key={color}
-              type="button"
-              onClick={() => setSelectedColor(color)}
-              className={`rounded-lg border px-4 py-2 text-sm transition ${
-                selectedColor === color
-                  ? 'border-neutral-950 bg-neutral-950 text-white'
-                  : 'border-neutral-300 text-neutral-700 hover:border-neutral-500'
-              }`}
-            >
-              {color}
-            </button>
-          ))}
-        </div>
+        <span
+          className={
+            product.stock > 0
+              ? 'text-sm font-medium text-green-600'
+              : 'text-sm font-medium text-red-600'
+          }
+        >
+          {product.availabilityStatus}
+        </span>
       </div>
-
-      {/* Size */}
-      {product.sizes && (
-        <div className="mt-6">
-          <div className="mb-3 flex items-center justify-between">
-            <span className="text-sm font-semibold text-neutral-950">
-              Size
-            </span>
-
-            <span className="text-sm text-neutral-500">
-              {selectedSize}
-            </span>
-          </div>
-
-          <div className="flex gap-3">
-            {product.sizes.map((size) => (
-              <button
-                key={size}
-                type="button"
-                onClick={() => setSelectedSize(size)}
-                className={`rounded-lg border px-4 py-2 text-sm transition ${
-                  selectedSize === size
-                    ? 'border-neutral-950 bg-neutral-950 text-white'
-                    : 'border-neutral-300 text-neutral-700 hover:border-neutral-500'
-                }`}
-              >
-                {size}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Quantity */}
       <div className="mt-6">
@@ -150,34 +130,80 @@ export function ProductInfo({ product }: ProductInfoProps) {
           Quantity
         </span>
 
-        <QuantitySelector />
+        <QuantitySelector
+          quantity={quantity}
+          onDecrease={() =>
+            setQuantity((current) =>
+              Math.max(1, current - 1)
+            )
+          }
+          onIncrease={() =>
+            setQuantity((current) =>
+              Math.min(product.stock, current + 1)
+            )
+          }
+        />
       </div>
 
       {/* Add to cart */}
       <button
         type="button"
-        className="mt-8 flex h-14 w-full items-center justify-center rounded-xl bg-neutral-950 text-sm font-semibold text-white transition hover:bg-neutral-800"
+        disabled={product.stock === 0}
+        onClick={handleAddToCart}
+        className="mt-8 flex h-14 w-full items-center justify-center rounded-xl bg-neutral-950 text-sm font-semibold text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-neutral-300"
       >
-        Add to cart
+        {product.stock > 0
+          ? 'Add to cart'
+          : 'Out of stock'}
       </button>
 
-      {/* Product features */}
+      {/* Product information */}
       <div className="mt-8 border-t border-neutral-200 pt-6">
         <h2 className="text-sm font-semibold text-neutral-950">
-          Product features
+          Product information
         </h2>
 
-        <ul className="mt-4 space-y-3">
-          {product.features.map((feature) => (
-            <li
-              key={feature}
-              className="flex items-start gap-3 text-sm text-neutral-600"
-            >
-              <span className="mt-0.5 text-neutral-950">✓</span>
-              {feature}
-            </li>
-          ))}
-        </ul>
+        <dl className="mt-5 space-y-4">
+          <div className="flex justify-between gap-6 text-sm">
+            <dt className="text-neutral-500">
+              Shipping
+            </dt>
+
+            <dd className="text-right text-neutral-800">
+              {product.shippingInformation}
+            </dd>
+          </div>
+
+          <div className="flex justify-between gap-6 text-sm">
+            <dt className="text-neutral-500">
+              Warranty
+            </dt>
+
+            <dd className="text-right text-neutral-800">
+              {product.warrantyInformation}
+            </dd>
+          </div>
+
+          <div className="flex justify-between gap-6 text-sm">
+            <dt className="text-neutral-500">
+              Returns
+            </dt>
+
+            <dd className="text-right text-neutral-800">
+              {product.returnPolicy}
+            </dd>
+          </div>
+
+          <div className="flex justify-between gap-6 text-sm">
+            <dt className="text-neutral-500">
+              Minimum order
+            </dt>
+
+            <dd className="text-right text-neutral-800">
+              {product.minimumOrderQuantity}
+            </dd>
+          </div>
+        </dl>
       </div>
     </div>
   );
