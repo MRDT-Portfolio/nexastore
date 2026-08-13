@@ -10,9 +10,8 @@ export function Navbar() {
 
   const cartCount = cartItems.reduce((total, item) => total + item.quantity, 0);
   return (
-    <header className="border-b border-neutral-200 bg-white">
+    <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/95 backdrop-blur">
       <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-6 lg:px-8">
-        {/* Logo */}
         <Link
           href="/"
           className="text-xl font-semibold tracking-tight text-neutral-950"
