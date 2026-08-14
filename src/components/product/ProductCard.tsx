@@ -51,7 +51,8 @@ export function ProductCard({
   };
 
   return (
-    <article className="group">
+    <article className="group flex h-full flex-col">
+      {/* Product image */}
       <Link href={`/products/${id}`}>
         <div className="relative aspect-square overflow-hidden rounded-2xl bg-neutral-100">
           <Image
@@ -70,8 +71,10 @@ export function ProductCard({
         </div>
       </Link>
 
-      <div className="mt-4">
+      {/* Product information */}
+      <div className="mt-4 flex flex-1 flex-col">
         <div className="flex items-start justify-between gap-3">
+          {/* Product name + rating */}
           <div className="min-w-0">
             <Link href={`/products/${id}`}>
               <h3 className="line-clamp-2 text-sm font-medium text-neutral-950 transition hover:text-neutral-600">
@@ -94,6 +97,7 @@ export function ProductCard({
             )}
           </div>
 
+          {/* Price */}
           <div className="shrink-0 text-right">
             <p className="text-sm font-semibold text-neutral-950">
               €{price.toFixed(2)}
@@ -107,16 +111,20 @@ export function ProductCard({
           </div>
         </div>
 
+        {/* Add to cart */}
         <div
           className="
-    mt-4
-    sm:translate-y-2
-    sm:opacity-0
-    sm:transition-all
-    sm:duration-300
-    sm:group-hover:translate-y-0
-    sm:group-hover:opacity-100
-  "
+            mt-auto
+            pt-4
+            sm:translate-y-2
+            sm:opacity-0
+            sm:pointer-events-none
+            sm:transition-all
+            sm:duration-300
+            sm:group-hover:translate-y-0
+            sm:group-hover:opacity-100
+            sm:group-hover:pointer-events-auto
+          "
         >
           <button
             type="button"

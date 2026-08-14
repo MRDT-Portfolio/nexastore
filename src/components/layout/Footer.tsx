@@ -1,17 +1,29 @@
-import Link from 'next/link';
+import Link from "next/link";
 
 const shopLinks = [
-  { label: 'All Products', href: '/products' },
-  { label: 'Electronics', href: '/categories/electronics' },
-  { label: 'Home & Living', href: '/categories/home-living' },
-  { label: 'Beauty', href: '/categories/beauty' },
+  {
+    label: "All Products",
+    href: "/products",
+  },
+  {
+    label: "Categories",
+    href: "/categories",
+  },
+  {
+    label: "Beauty",
+    href: "/products?category=beauty",
+  },
+  {
+    label: "Electronics",
+    href: "/products?category=smartphones",
+  },
 ];
 
 const companyLinks = [
-  { label: 'About Us', href: '/about' },
-  { label: 'Contact', href: '/contact' },
-  { label: 'Shipping', href: '/shipping' },
-  { label: 'Returns', href: '/returns' },
+  {
+    label: "About Us",
+    href: "/about",
+  },
 ];
 
 export function Footer() {
@@ -21,10 +33,7 @@ export function Footer() {
         <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
           <div className="lg:col-span-2">
-            <Link
-              href="/"
-              className="text-2xl font-semibold tracking-tight"
-            >
+            <Link href="/" className="text-2xl font-semibold tracking-tight">
               NexaStore
             </Link>
 
@@ -33,16 +42,37 @@ export function Footer() {
               simpler, better, and more enjoyable.
             </p>
 
+            {/* Social links */}
             <div className="mt-6 flex gap-3">
-              {['Instagram', 'Facebook', 'X'].map((social) => (
-                <a
-                  key={social}
-                  href="#"
-                  className="flex h-9 items-center rounded-full border border-neutral-700 px-4 text-xs text-neutral-300 transition hover:border-neutral-500 hover:text-white"
-                >
-                  {social}
-                </a>
-              ))}
+              <a
+                href="https://www.instagram.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram"
+                className="flex h-9 items-center rounded-full border border-neutral-700 px-4 text-xs text-neutral-300 transition hover:border-neutral-500 hover:text-white"
+              >
+                Instagram
+              </a>
+
+              <a
+                href="https://www.facebook.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook"
+                className="flex h-9 items-center rounded-full border border-neutral-700 px-4 text-xs text-neutral-300 transition hover:border-neutral-500 hover:text-white"
+              >
+                Facebook
+              </a>
+
+              <a
+                href="https://x.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="X"
+                className="flex h-9 items-center rounded-full border border-neutral-700 px-4 text-xs text-neutral-300 transition hover:border-neutral-500 hover:text-white"
+              >
+                X
+              </a>
             </div>
           </div>
 
@@ -88,12 +118,12 @@ export function Footer() {
           <p>© 2026 NexaStore. All rights reserved.</p>
 
           <div className="flex gap-5">
-            <Link href="/privacy" className="transition hover:text-white">
-              Privacy
+            <Link href="/about" className="transition hover:text-white">
+              About
             </Link>
 
-            <Link href="/terms" className="transition hover:text-white">
-              Terms
+            <Link href="/products" className="transition hover:text-white">
+              Shop
             </Link>
           </div>
         </div>

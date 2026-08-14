@@ -1,12 +1,13 @@
-"use client";
+'use client';
 
-import Link from "next/link";
+import Link from 'next/link';
 
 interface MobileMenuProps {
   isOpen: boolean;
   cartCount: number;
   onClose: () => void;
   onOpenCart: () => void;
+  onOpenSearch: () => void;
 }
 
 export function MobileMenu({
@@ -14,6 +15,7 @@ export function MobileMenu({
   cartCount,
   onClose,
   onOpenCart,
+  onOpenSearch,
 }: MobileMenuProps) {
   if (!isOpen) {
     return null;
@@ -72,15 +74,23 @@ export function MobileMenu({
           </div>
 
           <div className="mt-6 space-y-3">
+            {/* Search */}
             <button
               type="button"
-              onClick={onClose}
-              className="flex w-full items-center justify-between rounded-xl border border-neutral-200 px-4 py-3 text-left text-sm font-medium text-neutral-950"
+              onClick={onOpenSearch}
+              className="flex w-full items-center justify-between rounded-xl border border-neutral-200 px-4 py-3 text-left text-sm font-medium text-neutral-950 transition hover:bg-neutral-50"
             >
               <span>Search</span>
-              <span className="text-neutral-400">⌕</span>
+
+              <span
+                aria-hidden="true"
+                className="text-neutral-400"
+              >
+                ⌕
+              </span>
             </button>
 
+            {/* Cart */}
             <button
               type="button"
               onClick={onOpenCart}
@@ -88,9 +98,7 @@ export function MobileMenu({
             >
               <span>Cart</span>
 
-              <span>
-                {cartCount}
-              </span>
+              <span>{cartCount}</span>
             </button>
           </div>
         </nav>
