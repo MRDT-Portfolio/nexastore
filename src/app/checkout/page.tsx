@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
@@ -23,9 +23,12 @@ export default function CheckoutPage() {
   const dispatch = useAppDispatch();
 
   const cartItems = useAppSelector((state) => state.cart.items);
+
   const { subtotal, shipping, total } = calculateCartTotals(cartItems);
 
   const [step, setStep] = useState<CheckoutStep>(1);
+
+  const stepHeadingRef = useRef<HTMLHeadingElement>(null);
 
   const {
     register,
@@ -39,6 +42,14 @@ export default function CheckoutPage() {
       country: "Bulgaria",
     },
   });
+
+  /*
+   * Focus the current step heading whenever
+   * the checkout step changes.
+   */
+  useEffect(() => {
+    stepHeadingRef.current?.focus();
+  }, [step]);
 
   /*
    * Redirect to products if cart is empty.
@@ -57,7 +68,7 @@ export default function CheckoutPage() {
 
           <Link
             href="/products"
-            className="mt-7 inline-flex h-12 items-center justify-center rounded-xl bg-neutral-950 px-6 text-sm font-semibold text-white transition hover:bg-neutral-800"
+            className="mt-7 inline-flex h-12 items-center justify-center rounded-xl bg-neutral-950 px-6 text-sm font-semibold text-white transition hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-950 focus:ring-offset-2"
           >
             Continue shopping
           </Link>
@@ -67,7 +78,7 @@ export default function CheckoutPage() {
   }
 
   /*
-   * Move to next checkout step.
+   * Move to the next checkout step.
    */
   const handleNext = async () => {
     let fields: (keyof CheckoutFormValues)[] = [];
@@ -96,6 +107,9 @@ export default function CheckoutPage() {
     setStep((current) => Math.max(current - 1, 1) as CheckoutStep);
   };
 
+  /*
+   * Place order.
+   */
   const handlePlaceOrder = (data: CheckoutFormValues) => {
     console.log("Order submitted:", data);
 
@@ -111,7 +125,7 @@ export default function CheckoutPage() {
         <div className="mb-10">
           <Link
             href="/cart"
-            className="text-sm text-neutral-500 transition hover:text-neutral-950"
+            className="text-sm text-neutral-500 transition hover:text-neutral-950 focus:outline-none focus:ring-2 focus:ring-neutral-950 focus:ring-offset-2"
           >
             ← Back to cart
           </Link>
@@ -123,10 +137,14 @@ export default function CheckoutPage() {
 
         {/* Progress */}
         <div className="mb-10">
-          <div className="flex items-center">
+          <div
+            className="flex items-center"
+            aria-label={`Checkout step ${step} of 3`}
+          >
             {[1, 2, 3].map((stepNumber) => (
               <div key={stepNumber} className="flex flex-1 items-center">
                 <div
+                  aria-current={step === stepNumber ? "step" : undefined}
                   className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${
                     step >= stepNumber
                       ? "bg-neutral-950 text-white"
@@ -138,6 +156,7 @@ export default function CheckoutPage() {
 
                 {stepNumber < 3 && (
                   <div
+                    aria-hidden="true"
                     className={`mx-3 h-px flex-1 ${
                       step > stepNumber ? "bg-neutral-950" : "bg-neutral-200"
                     }`}
@@ -149,7 +168,9 @@ export default function CheckoutPage() {
 
           <div className="mt-3 grid grid-cols-3 text-xs text-neutral-500">
             <span>Information</span>
+
             <span className="text-center">Shipping</span>
+
             <span className="text-right">Payment</span>
           </div>
         </div>
@@ -158,14 +179,19 @@ export default function CheckoutPage() {
         <div className="grid gap-10 lg:grid-cols-[1fr_380px]">
           {/* Form */}
           <div className="rounded-2xl border border-neutral-200 bg-white p-6 sm:p-8">
-            <form onSubmit={handleSubmit(handlePlaceOrder)}>
+            <form onSubmit={handleSubmit(handlePlaceOrder)} noValidate>
               {/* ================================= */}
               {/* Step 1 */}
               {/* ================================= */}
 
               {step === 1 && (
-                <section>
-                  <h2 className="text-xl font-semibold text-neutral-950">
+                <section aria-labelledby="checkout-step-1-title">
+                  <h2
+                    ref={stepHeadingRef}
+                    id="checkout-step-1-title"
+                    tabIndex={-1}
+                    className="text-xl font-semibold text-neutral-950 outline-none"
+                  >
                     Contact information
                   </h2>
 
@@ -174,42 +200,80 @@ export default function CheckoutPage() {
                   </p>
 
                   <div className="mt-7 grid gap-5 sm:grid-cols-2">
+                    {/* First name */}
                     <FormField
+                      id="firstName"
                       label="First name"
                       error={errors.firstName?.message}
                     >
                       <input
                         {...register("firstName")}
+                        id="firstName"
+                        autoComplete="given-name"
                         placeholder="John"
+                        aria-invalid={errors.firstName ? "true" : "false"}
+                        aria-describedby={
+                          errors.firstName ? "firstName-error" : undefined
+                        }
                         className={inputClass}
                       />
                     </FormField>
 
+                    {/* Last name */}
                     <FormField
+                      id="lastName"
                       label="Last name"
                       error={errors.lastName?.message}
                     >
                       <input
                         {...register("lastName")}
+                        id="lastName"
+                        autoComplete="family-name"
                         placeholder="Doe"
+                        aria-invalid={errors.lastName ? "true" : "false"}
+                        aria-describedby={
+                          errors.lastName ? "lastName-error" : undefined
+                        }
                         className={inputClass}
                       />
                     </FormField>
 
-                    <FormField label="Email" error={errors.email?.message}>
+                    {/* Email */}
+                    <FormField
+                      id="email"
+                      label="Email"
+                      error={errors.email?.message}
+                    >
                       <input
                         {...register("email")}
+                        id="email"
                         type="email"
+                        autoComplete="email"
                         placeholder="john@example.com"
+                        aria-invalid={errors.email ? "true" : "false"}
+                        aria-describedby={
+                          errors.email ? "email-error" : undefined
+                        }
                         className={`${inputClass} sm:col-span-2`}
                       />
                     </FormField>
 
-                    <FormField label="Phone" error={errors.phone?.message}>
+                    {/* Phone */}
+                    <FormField
+                      id="phone"
+                      label="Phone"
+                      error={errors.phone?.message}
+                    >
                       <input
                         {...register("phone")}
+                        id="phone"
                         type="tel"
+                        autoComplete="tel"
                         placeholder="+359 88 123 4567"
+                        aria-invalid={errors.phone ? "true" : "false"}
+                        aria-describedby={
+                          errors.phone ? "phone-error" : undefined
+                        }
                         className={`${inputClass} sm:col-span-2`}
                       />
                     </FormField>
@@ -226,8 +290,13 @@ export default function CheckoutPage() {
               {/* ================================= */}
 
               {step === 2 && (
-                <section>
-                  <h2 className="text-xl font-semibold text-neutral-950">
+                <section aria-labelledby="checkout-step-2-title">
+                  <h2
+                    ref={stepHeadingRef}
+                    id="checkout-step-2-title"
+                    tabIndex={-1}
+                    className="text-xl font-semibold text-neutral-950 outline-none"
+                  >
                     Shipping information
                   </h2>
 
@@ -236,48 +305,101 @@ export default function CheckoutPage() {
                   </p>
 
                   <div className="mt-7 space-y-5">
-                    <FormField label="Address" error={errors.address?.message}>
+                    {/* Address */}
+                    <FormField
+                      id="address"
+                      label="Address"
+                      error={errors.address?.message}
+                    >
                       <input
                         {...register("address")}
+                        id="address"
+                        autoComplete="street-address"
                         placeholder="123 Main Street"
+                        aria-invalid={errors.address ? "true" : "false"}
+                        aria-describedby={
+                          errors.address ? "address-error" : undefined
+                        }
                         className={inputClass}
                       />
                     </FormField>
 
+                    {/* Apartment */}
                     <FormField
+                      id="apartment"
                       label="Apartment, suite, etc. (optional)"
                       error={errors.apartment?.message}
                     >
                       <input
                         {...register("apartment")}
+                        id="apartment"
+                        autoComplete="address-line2"
                         placeholder="Apartment 4"
+                        aria-invalid={errors.apartment ? "true" : "false"}
+                        aria-describedby={
+                          errors.apartment ? "apartment-error" : undefined
+                        }
                         className={inputClass}
                       />
                     </FormField>
 
                     <div className="grid gap-5 sm:grid-cols-2">
-                      <FormField label="City" error={errors.city?.message}>
+                      {/* City */}
+                      <FormField
+                        id="city"
+                        label="City"
+                        error={errors.city?.message}
+                      >
                         <input
                           {...register("city")}
+                          id="city"
+                          autoComplete="address-level2"
                           placeholder="Sofia"
+                          aria-invalid={errors.city ? "true" : "false"}
+                          aria-describedby={
+                            errors.city ? "city-error" : undefined
+                          }
                           className={inputClass}
                         />
                       </FormField>
 
+                      {/* Postal code */}
                       <FormField
+                        id="postalCode"
                         label="Postal code"
                         error={errors.postalCode?.message}
                       >
                         <input
                           {...register("postalCode")}
+                          id="postalCode"
+                          autoComplete="postal-code"
+                          inputMode="numeric"
                           placeholder="1000"
+                          aria-invalid={errors.postalCode ? "true" : "false"}
+                          aria-describedby={
+                            errors.postalCode ? "postalCode-error" : undefined
+                          }
                           className={inputClass}
                         />
                       </FormField>
                     </div>
 
-                    <FormField label="Country" error={errors.country?.message}>
-                      <select {...register("country")} className={inputClass}>
+                    {/* Country */}
+                    <FormField
+                      id="country"
+                      label="Country"
+                      error={errors.country?.message}
+                    >
+                      <select
+                        {...register("country")}
+                        id="country"
+                        autoComplete="country-name"
+                        aria-invalid={errors.country ? "true" : "false"}
+                        aria-describedby={
+                          errors.country ? "country-error" : undefined
+                        }
+                        className={inputClass}
+                      >
                         <option value="Bulgaria">Bulgaria</option>
 
                         <option value="Germany">Germany</option>
@@ -312,8 +434,13 @@ export default function CheckoutPage() {
               {/* ================================= */}
 
               {step === 3 && (
-                <section>
-                  <h2 className="text-xl font-semibold text-neutral-950">
+                <section aria-labelledby="checkout-step-3-title">
+                  <h2
+                    ref={stepHeadingRef}
+                    id="checkout-step-3-title"
+                    tabIndex={-1}
+                    className="text-xl font-semibold text-neutral-950 outline-none"
+                  >
                     Payment
                   </h2>
 
@@ -322,49 +449,84 @@ export default function CheckoutPage() {
                   </p>
 
                   <div className="mt-7 space-y-5">
+                    {/* Card name */}
                     <FormField
+                      id="cardName"
                       label="Name on card"
                       error={errors.cardName?.message}
                     >
                       <input
                         {...register("cardName")}
+                        id="cardName"
+                        autoComplete="cc-name"
                         placeholder="John Doe"
+                        aria-invalid={errors.cardName ? "true" : "false"}
+                        aria-describedby={
+                          errors.cardName ? "cardName-error" : undefined
+                        }
                         className={inputClass}
                       />
                     </FormField>
 
+                    {/* Card number */}
                     <FormField
+                      id="cardNumber"
                       label="Card number"
                       error={errors.cardNumber?.message}
                     >
                       <input
                         {...register("cardNumber")}
+                        id="cardNumber"
                         inputMode="numeric"
+                        autoComplete="cc-number"
                         maxLength={16}
                         placeholder="1234567890123456"
+                        aria-invalid={errors.cardNumber ? "true" : "false"}
+                        aria-describedby={
+                          errors.cardNumber ? "cardNumber-error" : undefined
+                        }
                         className={inputClass}
                       />
                     </FormField>
 
                     <div className="grid gap-5 sm:grid-cols-2">
+                      {/* Expiry */}
                       <FormField
+                        id="expiryDate"
                         label="Expiry date"
                         error={errors.expiryDate?.message}
                       >
                         <input
                           {...register("expiryDate")}
+                          id="expiryDate"
+                          autoComplete="cc-exp"
                           placeholder="MM/YY"
                           maxLength={5}
+                          aria-invalid={errors.expiryDate ? "true" : "false"}
+                          aria-describedby={
+                            errors.expiryDate ? "expiryDate-error" : undefined
+                          }
                           className={inputClass}
                         />
                       </FormField>
 
-                      <FormField label="CVV" error={errors.cvv?.message}>
+                      {/* CVV */}
+                      <FormField
+                        id="cvv"
+                        label="CVV"
+                        error={errors.cvv?.message}
+                      >
                         <input
                           {...register("cvv")}
+                          id="cvv"
                           inputMode="numeric"
+                          autoComplete="cc-csc"
                           maxLength={4}
                           placeholder="123"
+                          aria-invalid={errors.cvv ? "true" : "false"}
+                          aria-describedby={
+                            errors.cvv ? "cvv-error" : undefined
+                          }
                           className={inputClass}
                         />
                       </FormField>
@@ -388,8 +550,14 @@ export default function CheckoutPage() {
           </div>
 
           {/* Order summary */}
-          <aside className="h-fit rounded-2xl border border-neutral-200 bg-white p-6 lg:sticky lg:top-24">
-            <h2 className="text-lg font-semibold text-neutral-950">
+          <aside
+            aria-labelledby="order-summary-title"
+            className="h-fit rounded-2xl border border-neutral-200 bg-white p-6 lg:sticky lg:top-24"
+          >
+            <h2
+              id="order-summary-title"
+              className="text-lg font-semibold text-neutral-950"
+            >
               Order summary
             </h2>
 
@@ -459,24 +627,34 @@ export default function CheckoutPage() {
 /* ================================= */
 
 const inputClass =
-  "h-12 w-full rounded-xl border border-neutral-200 bg-white px-4 text-sm text-neutral-950 outline-none transition placeholder:text-neutral-400 focus:border-neutral-950 focus:ring-1 focus:ring-neutral-950";
+  "h-12 w-full rounded-xl border border-neutral-200 bg-white px-4 text-sm text-neutral-950 outline-none transition placeholder:text-neutral-400 focus:border-neutral-950 focus:ring-2 focus:ring-neutral-950 focus:ring-offset-1 aria-[invalid=true]:border-red-500 aria-[invalid=true]:focus:ring-red-500";
 
 interface FormFieldProps {
+  id: string;
   label: string;
   error?: string;
   children: React.ReactNode;
 }
 
-function FormField({ label, error, children }: FormFieldProps) {
+function FormField({ id, label, error, children }: FormFieldProps) {
+  const errorId = `${id}-error`;
+
   return (
     <div>
-      <label className="mb-2 block text-sm font-medium text-neutral-950">
+      <label
+        htmlFor={id}
+        className="mb-2 block text-sm font-medium text-neutral-950"
+      >
         {label}
       </label>
 
       {children}
 
-      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+      {error && (
+        <p id={errorId} role="alert" className="mt-2 text-xs text-red-600">
+          {error}
+        </p>
+      )}
     </div>
   );
 }
@@ -498,7 +676,7 @@ function StepButton({
     <button
       type={type}
       onClick={onClick}
-      className={`h-12 flex-1 rounded-xl px-6 text-sm font-semibold transition ${
+      className={`h-12 flex-1 rounded-xl px-6 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-neutral-950 focus:ring-offset-2 ${
         variant === "secondary"
           ? "border border-neutral-200 bg-white text-neutral-950 hover:bg-neutral-50"
           : "bg-neutral-950 text-white hover:bg-neutral-800"
