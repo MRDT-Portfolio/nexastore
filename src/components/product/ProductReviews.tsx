@@ -58,7 +58,6 @@ const averageRating =
 
   return (
     <section className="border-t border-neutral-200 pt-10">
-      {/* Header */}
       <div>
         <h2 className="text-2xl font-semibold tracking-tight text-neutral-950">
           Customer reviews
@@ -69,7 +68,6 @@ const averageRating =
         </p>
       </div>
 
-      {/* Rating summary */}
       <div className="mt-8 grid gap-8 md:grid-cols-[180px_1fr]">
         {/* Average */}
         <div className="flex flex-col items-center justify-center rounded-2xl bg-neutral-50 p-6 text-center">
@@ -92,7 +90,6 @@ const averageRating =
           </p>
         </div>
 
-        {/* Rating distribution */}
         <div className="flex flex-col justify-center gap-3">
           {[5, 4, 3, 2, 1].map((ratingValue) => {
             const percentage =
@@ -128,7 +125,6 @@ const averageRating =
         </div>
       </div>
 
-      {/* Reviews */}
       <div className="mt-10 divide-y divide-neutral-200 border-y border-neutral-200">
         {reviews.map((review, index) => (
           <article

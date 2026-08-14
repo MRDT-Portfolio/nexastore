@@ -1,19 +1,17 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
-import type { Product } from '@/types/product';
-import { useAppDispatch } from '@/hooks/redux';
-import { QuantitySelector } from './QuantitySelector';
-import { addToCart } from '@/lib/features/cart/cartSlice';
+import type { Product } from "@/types/product";
+import { useAppDispatch } from "@/hooks/redux";
+import { QuantitySelector } from "./QuantitySelector";
+import { addToCart } from "@/lib/features/cart/cartSlice";
 
 interface ProductInfoProps {
   product: Product;
 }
 
-export function ProductInfo({
-  product,
-}: ProductInfoProps) {
+export function ProductInfo({ product }: ProductInfoProps) {
   const dispatch = useAppDispatch();
 
   const [quantity, setQuantity] = useState(1);
@@ -21,7 +19,9 @@ export function ProductInfo({
   const discount = Math.round(product.discountPercentage);
 
   const originalPrice =
-    product.price / (1 - product.discountPercentage / 100);
+    product.discountPercentage > 0 && product.discountPercentage < 100
+      ? product.price / (1 - product.discountPercentage / 100)
+      : product.price;
 
   const reviewCount = product.reviews?.length ?? 0;
 
@@ -33,7 +33,7 @@ export function ProductInfo({
         price: product.price,
         image: product.thumbnail,
         quantity,
-      })
+      }),
     );
   };
 
@@ -51,9 +51,7 @@ export function ProductInfo({
 
       {/* Brand */}
       {product.brand && (
-        <p className="mt-2 text-sm text-neutral-500">
-          by {product.brand}
-        </p>
+        <p className="mt-2 text-sm text-neutral-500">by {product.brand}</p>
       )}
 
       {/* Rating */}
@@ -62,13 +60,11 @@ export function ProductInfo({
           className="flex gap-0.5 text-sm text-amber-400"
           aria-label={`${product.rating} out of 5 stars`}
         >
-          {'★★★★★'.split('').map((star, index) => (
+          {"★★★★★".split("").map((star, index) => (
             <span
               key={index}
               className={
-                index < Math.round(product.rating)
-                  ? ''
-                  : 'text-neutral-300'
+                index < Math.round(product.rating) ? "" : "text-neutral-300"
               }
             >
               {star}
@@ -101,9 +97,7 @@ export function ProductInfo({
       </div>
 
       {/* Description */}
-      <p className="mt-6 leading-7 text-neutral-600">
-        {product.description}
-      </p>
+      <p className="mt-6 leading-7 text-neutral-600">{product.description}</p>
 
       <div className="my-8 h-px bg-neutral-200" />
 
@@ -116,8 +110,8 @@ export function ProductInfo({
         <span
           className={
             product.stock > 0
-              ? 'text-sm font-medium text-green-600'
-              : 'text-sm font-medium text-red-600'
+              ? "text-sm font-medium text-green-600"
+              : "text-sm font-medium text-red-600"
           }
         >
           {product.availabilityStatus}
@@ -132,15 +126,9 @@ export function ProductInfo({
 
         <QuantitySelector
           quantity={quantity}
-          onDecrease={() =>
-            setQuantity((current) =>
-              Math.max(1, current - 1)
-            )
-          }
+          onDecrease={() => setQuantity((current) => Math.max(1, current - 1))}
           onIncrease={() =>
-            setQuantity((current) =>
-              Math.min(product.stock, current + 1)
-            )
+            setQuantity((current) => Math.min(product.stock, current + 1))
           }
         />
       </div>
@@ -152,9 +140,7 @@ export function ProductInfo({
         onClick={handleAddToCart}
         className="mt-8 flex h-14 w-full items-center justify-center rounded-xl bg-neutral-950 text-sm font-semibold text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-neutral-300"
       >
-        {product.stock > 0
-          ? 'Add to cart'
-          : 'Out of stock'}
+        {product.stock > 0 ? "Add to cart" : "Out of stock"}
       </button>
 
       {/* Product information */}
@@ -165,9 +151,7 @@ export function ProductInfo({
 
         <dl className="mt-5 space-y-4">
           <div className="flex justify-between gap-6 text-sm">
-            <dt className="text-neutral-500">
-              Shipping
-            </dt>
+            <dt className="text-neutral-500">Shipping</dt>
 
             <dd className="text-right text-neutral-800">
               {product.shippingInformation}
@@ -175,9 +159,7 @@ export function ProductInfo({
           </div>
 
           <div className="flex justify-between gap-6 text-sm">
-            <dt className="text-neutral-500">
-              Warranty
-            </dt>
+            <dt className="text-neutral-500">Warranty</dt>
 
             <dd className="text-right text-neutral-800">
               {product.warrantyInformation}
@@ -185,9 +167,7 @@ export function ProductInfo({
           </div>
 
           <div className="flex justify-between gap-6 text-sm">
-            <dt className="text-neutral-500">
-              Returns
-            </dt>
+            <dt className="text-neutral-500">Returns</dt>
 
             <dd className="text-right text-neutral-800">
               {product.returnPolicy}
@@ -195,9 +175,7 @@ export function ProductInfo({
           </div>
 
           <div className="flex justify-between gap-6 text-sm">
-            <dt className="text-neutral-500">
-              Minimum order
-            </dt>
+            <dt className="text-neutral-500">Minimum order</dt>
 
             <dd className="text-right text-neutral-800">
               {product.minimumOrderQuantity}

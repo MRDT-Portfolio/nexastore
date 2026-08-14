@@ -1,7 +1,8 @@
-import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 
-import { ProductDetails } from '@/components/product/ProductDetails';
+import { ProductDetails } from "@/components/product/ProductDetails";
+import type { Product } from "@/types/product";
 
 interface ProductPageProps {
   params: Promise<{
@@ -9,14 +10,25 @@ interface ProductPageProps {
   }>;
 }
 
-interface Product {
-  id: number;
-  title: string;
-  description: string;
-  category: string;
-  price: number;
-  thumbnail: string;
-  images: string[];
+const API_URL = "https://dummyjson.com/products";
+
+async function getProduct(
+  id: number,
+): Promise<Product | null> {
+  const response = await fetch(
+    `${API_URL}/${id}`,
+    {
+      next: {
+        revalidate: 3600,
+      },
+    },
+  );
+
+  if (!response.ok) {
+    return null;
+  }
+
+  return response.json();
 }
 
 export async function generateMetadata({
@@ -24,31 +36,31 @@ export async function generateMetadata({
 }: ProductPageProps): Promise<Metadata> {
   const { id } = await params;
 
-  const response = await fetch(
-    `https://dummyjson.com/products/${id}`,
-    {
-      next: {
-        revalidate: 3600,
-      },
-    }
-  );
+  const productId = Number(id);
 
-  if (!response.ok) {
+  if (
+    !Number.isInteger(productId) ||
+    productId <= 0
+  ) {
     return {
-      title: 'Product Not Found',
-      description:
-        'The requested product could not be found.',
+      title: "Product Not Found",
     };
   }
 
-  const product: Product =
-    await response.json();
+  const product = await getProduct(productId);
+
+  if (!product) {
+    return {
+      title: "Product Not Found",
+      description:
+        "The requested product could not be found.",
+    };
+  }
 
   const productUrl = `/products/${product.id}`;
 
   return {
     title: product.title,
-
     description: product.description,
 
     alternates: {
@@ -56,7 +68,7 @@ export async function generateMetadata({
     },
 
     openGraph: {
-      type: 'website',
+      type: "website",
       title: product.title,
       description: product.description,
       url: productUrl,
@@ -71,7 +83,7 @@ export async function generateMetadata({
     },
 
     twitter: {
-      card: 'summary_large_image',
+      card: "summary_large_image",
       title: product.title,
       description: product.description,
       images: [product.thumbnail],
@@ -93,7 +105,11 @@ export default async function ProductPage({
     notFound();
   }
 
-  return (
-    <ProductDetails productId={productId} />
-  );
+  const product = await getProduct(productId);
+
+  if (!product) {
+    notFound();
+  }
+
+  return <ProductDetails product={product} />;
 }
