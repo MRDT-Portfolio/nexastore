@@ -1,12 +1,10 @@
-'use client';
-
-import Link from 'next/link';
+import Link from "next/link";
 
 import {
   FREE_SHIPPING_THRESHOLD,
   SHIPPING_COST,
   calculateShipping,
-} from '@/lib/features/cart/cartCalculations';
+} from "@/lib/features/cart/cartCalculations";
 
 interface CartSummaryProps {
   subtotal: number;
@@ -16,42 +14,56 @@ export function CartSummary({
   subtotal,
 }: CartSummaryProps) {
   const shipping = calculateShipping(subtotal);
-
   const total = subtotal + shipping;
 
   const isFreeShipping = shipping === 0;
 
   const amountUntilFreeShipping = Math.max(
     FREE_SHIPPING_THRESHOLD - subtotal,
-    0
+    0,
+  );
+
+  const shippingProgress = Math.min(
+    (subtotal / FREE_SHIPPING_THRESHOLD) * 100,
+    100,
   );
 
   return (
-    <aside className="rounded-2xl border border-neutral-200 bg-neutral-50 p-6 lg:p-7">
-      <h2 className="text-lg font-semibold text-neutral-950">
+    <aside
+      aria-labelledby="cart-summary-title"
+      className="rounded-2xl border border-neutral-200 bg-neutral-50 p-6 lg:p-7"
+    >
+      <h2
+        id="cart-summary-title"
+        className="text-lg font-semibold text-neutral-950"
+      >
         Order summary
       </h2>
 
       {!isFreeShipping && (
         <div className="mt-5 rounded-xl bg-white p-4">
           <p className="text-sm leading-6 text-neutral-600">
-            Add{' '}
+            Add{" "}
             <span className="font-semibold text-neutral-950">
               €{amountUntilFreeShipping.toFixed(2)}
-            </span>{' '}
+            </span>{" "}
             more to get free shipping.
           </p>
 
-          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-neutral-200">
+          <div
+            className="mt-3 h-1.5 overflow-hidden rounded-full bg-neutral-200"
+            role="progressbar"
+            aria-label="Free shipping progress"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(
+              shippingProgress,
+            )}
+          >
             <div
-              className="h-full rounded-full bg-neutral-950"
+              className="h-full rounded-full bg-neutral-950 transition-all"
               style={{
-                width: `${Math.min(
-                  (subtotal /
-                    FREE_SHIPPING_THRESHOLD) *
-                    100,
-                  100
-                )}%`,
+                width: `${shippingProgress}%`,
               }}
             />
           </div>
@@ -59,7 +71,10 @@ export function CartSummary({
       )}
 
       {isFreeShipping && (
-        <div className="mt-5 rounded-xl bg-neutral-950 p-4 text-sm text-white">
+        <div
+          className="mt-5 rounded-xl bg-neutral-950 p-4 text-sm text-white"
+          role="status"
+        >
           You qualify for free shipping.
         </div>
       )}
@@ -82,7 +97,7 @@ export function CartSummary({
 
           <span className="font-medium text-neutral-950">
             {isFreeShipping
-              ? 'Free'
+              ? "Free"
               : `€${SHIPPING_COST.toFixed(2)}`}
           </span>
         </div>
@@ -102,14 +117,14 @@ export function CartSummary({
 
       <Link
         href="/checkout"
-        className="mt-6 flex h-12 w-full items-center justify-center rounded-xl bg-neutral-950 text-sm font-semibold text-white transition hover:bg-neutral-800"
+        className="mt-6 flex h-12 w-full items-center justify-center rounded-xl bg-neutral-950 text-sm font-semibold text-white transition hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-950 focus:ring-offset-2"
       >
         Checkout
       </Link>
 
       <p className="mt-4 text-center text-xs leading-5 text-neutral-400">
-        Taxes and final shipping costs are calculated
-        during checkout.
+        Taxes and final shipping costs are
+        calculated during checkout.
       </p>
     </aside>
   );
